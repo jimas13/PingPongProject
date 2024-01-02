@@ -8,10 +8,12 @@ namespace PingPongProject
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+            //configuration setup
+            builder.Configuration.AddEnvironmentVariables();
 
             // Add services to the container.
             builder.Services.AddAuthorization();
-
+            
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();

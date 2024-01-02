@@ -6,7 +6,7 @@ namespace PingPongProject.Workers
     {
         private readonly ILogger<PingRequestTimedHostedService> _logger;
         private int executionCount = 0;
-        private Timer? _timer = null;
+        //private PeriodicTimer? _timer = null;
         private readonly IHttpClientFactory _httpClientFactory;
 
         public PingRequestTimedHostedService(ILogger<PingRequestTimedHostedService> logger, IHttpClientFactory httpClientFactory)
@@ -21,16 +21,19 @@ namespace PingPongProject.Workers
             while (!stoppingToken.IsCancellationRequested)
             {
                 _logger.LogInformation("Timed Hosted Service running.");
-
-                //_timer = new Timer(DoWork, null, TimeSpan.Zero,
-                //    TimeSpan.FromSeconds(10));
-                DoWork(httpClient);
-
-                await Task.Delay(10000);
+                using(var _timer = new PeriodicTimer(TimeSpan.FromSeconds(10)))
+                {
+                    while (!stoppingToken.IsCancellationRequested && await _timer.WaitForNextTickAsync())
+                    {
+                        ExecutePeriodicTask(httpClient);
+                    }
+                    await _timer.WaitForNextTickAsync(stoppingToken);
+                    
+                }
             }
         }
 
-        private async void DoWork(HttpClient httpClient)
+        private async void ExecutePeriodicTask(HttpClient httpClient)
         {
             var count = Interlocked.Increment(ref executionCount);
 
